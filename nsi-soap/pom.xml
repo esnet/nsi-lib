@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <groupId>net.es.nsi-lib</groupId>
+    <artifactId>nsi-soap</artifactId>
+    <version>2014_03_r117</version>
+
+    <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <cxf.version>3.0.1</cxf.version>
+        <java.version>1.7</java.version>
+
+        <!-- github server corresponds to entry in ~/.m2/settings.xml -->
+        <github.global.server>github</github.global.server>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.9</version>
+                <configuration>
+                    <message>Maven artifacts for ${project.version}</message>  <!-- git commit message -->
+                    <noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
+                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+                    <branch>refs/heads/mvn-repo</branch>                       <!-- remote branch name -->
+                    <includes><include>**/*</include></includes>
+                    <repositoryName>esnet/nsi-lib</repositoryName>      <!-- github repo name -->
+                    <repositoryOwner>haniotak</repositoryOwner>    <!-- github username  -->
+                </configuration>
+                <executions>
+                    <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <distributionManagement>
+        <repository>
+            <id>internal.repo</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.build.directory}/mvn-repo</url>
+        </repository>
+    </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>rebuild-soap</id>
+            <activation>
+                <property><name>rebuildSoap</name></property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.5</version>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>src/main/java/net/es</directory>
+                                    <includes>
+                                        <include>**/*.java</include>
+                                    </includes>
+                                    <followSymlinks>false</followSymlinks>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.cxf</groupId>
+                        <artifactId>cxf-codegen-plugin</artifactId>
+                        <version>${cxf.version}</version>
+                        <executions>
+                            <execution>
+                                <id>generate-provider-sources</id>
+                                <phase>generate-sources</phase>
+                                <configuration>
+                                    <sourceRoot>${basedir}/src/main/java</sourceRoot>
+                                    <wsdlOptions>
+                                        <wsdlOption>
+                                            <extraargs>
+                                                <extraarg>-exsh</extraarg>
+                                                <extraarg>true</extraarg>
+                                                <extraarg>-impl</extraarg>
+                                                <extraarg>-client</extraarg>
+                                                <extraarg>-frontend</extraarg>
+                                                <extraarg>jaxws21</extraarg>
+
+                                                <extraarg>-autoNameResolution</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/services/point2point=net.es.nsi.lib.soap.gen.nsi_2_0_r117.services.point2point</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/services/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.services.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/framework/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.framework.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/framework/headers=net.es.nsi.lib.soap.gen.nsi_2_0_r117.framework.headers</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/interface=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.ifce</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/provider=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.provider</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>urn:oasis:names:tc:SAML:2.0:assertion=net.es.nsi.lib.soap.gen.saml.assertion</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://www.w3.org/2000/09/xmldsig#=net.es.nsi.lib.soap.gen.xmldsig</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://www.w3.org/2001/04/xmlenc#=net.es.nsi.lib.soap.gen.xmlenc</extraarg>
+
+                                            </extraargs>
+                                            <bindingFiles>
+                                                <bindingFile>${basedir}/schema/NsiBindings.xml</bindingFile>
+                                            </bindingFiles>
+
+                                            <wsdl>${basedir}/schema/r117/ConnectionService/ogf_nsi_connection_provider_v2_0.wsdl</wsdl>
+                                            c                                        </wsdlOption>
+                                    </wsdlOptions>
+                                </configuration>
+                                <goals>
+                                    <goal>wsdl2java</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>generate-requester-sources</id>
+                                <phase>generate-sources</phase>
+                                <configuration>
+                                    <sourceRoot>${basedir}/src/main/java</sourceRoot>
+                                    <wsdlOptions>
+                                        <wsdlOption>
+                                            <extraargs>
+                                                <extraarg>-exsh</extraarg>
+                                                <extraarg>true</extraarg>
+                                                <extraarg>-impl</extraarg>
+                                                <extraarg>-client</extraarg>
+                                                <extraarg>-frontend</extraarg>
+                                                <extraarg>jaxws21</extraarg>
+                                                <extraarg>-autoNameResolution</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/services/point2point=net.es.nsi.lib.soap.gen.nsi_2_0_r117.services.point2point</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/services/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.services.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/framework/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.framework.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/framework/headers=net.es.nsi.lib.soap.gen.nsi_2_0_r117.framework.headers</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/interface=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.ifce</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/requester=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.requester</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>urn:oasis:names:tc:SAML:2.0:assertion=net.es.nsi.lib.soap.gen.saml.assertion</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://www.w3.org/2000/09/xmldsig#=net.es.nsi.lib.soap.gen.xmldsig</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://www.w3.org/2001/04/xmlenc#=net.es.nsi.lib.soap.gen.xmlenc</extraarg>
+
+                                            </extraargs>
+
+                                            <wsdl>${basedir}/schema/r117/ConnectionService/ogf_nsi_connection_requester_v2_0.wsdl</wsdl>
+                                            <bindingFiles>
+                                                <bindingFile>${basedir}/schema/NsiBindings.xml</bindingFile>
+                                            </bindingFiles>
+                                        </wsdlOption>
+                                    </wsdlOptions>
+                                </configuration>
+                                <goals>
+                                    <goal>wsdl2java</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>generate-p2p-sources</id>
+                                <phase>generate-sources</phase>
+                                <configuration>
+                                    <sourceRoot>${basedir}/src/main/java</sourceRoot>
+                                    <wsdlOptions>
+                                        <wsdlOption>
+                                            <extraargs>
+                                                <extraarg>-exsh</extraarg>
+                                                <extraarg>true</extraarg>
+                                                <extraarg>-impl</extraarg>
+                                                <extraarg>-client</extraarg>
+                                                <extraarg>-frontend</extraarg>
+                                                <extraarg>jaxws21</extraarg>
+
+                                                <extraarg>-autoNameResolution</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/services/point2point=net.es.nsi.lib.soap.gen.nsi_2_0_r117.services.point2point</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/services/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.services.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/framework/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.framework.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/framework/headers=net.es.nsi.lib.soap.gen.nsi_2_0_r117.framework.headers</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/interface=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.ifce</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/types=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.types</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://schemas.ogf.org/nsi/2013/12/connection/requester=net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.requester</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>urn:oasis:names:tc:SAML:2.0:assertion=net.es.nsi.lib.soap.gen.saml.assertion</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://www.w3.org/2000/09/xmldsig#=net.es.nsi.lib.soap.gen.xmldsig</extraarg>
+                                                <extraarg>-p</extraarg>
+                                                <extraarg>http://www.w3.org/2001/04/xmlenc#=net.es.nsi.lib.soap.gen.xmlenc</extraarg>
+
+                                            </extraargs>
+
+                                            <wsdl>${basedir}/schema/r117/ConnectionService/p2p_service.wsdl</wsdl>
+                                            <bindingFiles>
+                                                <bindingFile>${basedir}/schema/NsiBindings.xml</bindingFile>
+                                            </bindingFiles>
+                                        </wsdlOption>
+                                    </wsdlOptions>
+                                </configuration>
+                                <goals>
+                                    <goal>wsdl2java</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+</project>
