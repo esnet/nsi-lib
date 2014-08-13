@@ -5,7 +5,6 @@
     <groupId>net.es.nsi-lib</groupId>
     <artifactId>nsi-soap</artifactId>
     <version>2.0</version>
-    <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
