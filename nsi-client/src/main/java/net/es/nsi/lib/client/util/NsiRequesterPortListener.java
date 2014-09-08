@@ -12,6 +12,8 @@ import java.util.Map;
  */
 public class NsiRequesterPortListener {
     private org.apache.cxf.endpoint.Server server;
+    private NsiRequesterPort port;
+
     private boolean running = false;
     
     /**
@@ -38,6 +40,7 @@ public class NsiRequesterPortListener {
         sf.setServiceClass(ConnectionRequesterPort.class);
         sf.setAddress(url);
         sf.setServiceBean(cr);
+        port = cr;
 
         server = sf.create();
     }
@@ -52,7 +55,9 @@ public class NsiRequesterPortListener {
         server.destroy();
         this.setRunning(false);
     }
-
+    public NsiRequesterPort getPort() {
+        return port;
+    }
     public boolean isRunning() {
         return running;
     }
