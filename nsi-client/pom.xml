@@ -6,7 +6,7 @@
 
     <groupId>net.es.nsi-lib</groupId>
     <artifactId>nsi-client</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <properties>
         <cucumber.options>--strict</cucumber.options>
         <java.version>1.6</java.version>

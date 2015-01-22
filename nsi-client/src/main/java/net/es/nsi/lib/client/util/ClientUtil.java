@@ -25,6 +25,8 @@ import java.util.UUID;
  *
  */
 public class ClientUtil {
+    private static ClientUtil instance;
+    private ClientUtil() {}
     final public static String DEFAULT_URL = "https://localhost:8500/nsi-v2/ConnectionServiceProvider";
     final public static String DEFAULT_REQUESTER = "urn:oscars:nsa:client";
     final public static String DEFAULT_PROVIDER = DEFAULT_REQUESTER;
@@ -33,6 +35,13 @@ public class ClientUtil {
 
     HashMap<URL, ConnectionRequesterPort> requesterPorts = new HashMap<URL, ConnectionRequesterPort>();
     HashMap<URL, ConnectionProviderPort> providerPorts = new HashMap<URL, ConnectionProviderPort>();
+
+    public static ClientUtil getInstance() {
+        if (instance == null) {
+            instance = new ClientUtil();
+        }
+        return instance;
+    }
 
     public synchronized ConnectionRequesterPort getRequesterPort(URL url, ClientConfig cc) {
         if (requesterPorts.get(url) == null) {
@@ -57,9 +66,9 @@ public class ClientUtil {
      * @param cc the client configuration
      * @return the ConnectionProviderPort that you can use as the client
      */
-    public static ConnectionProviderPort createProviderClient(URL url, ClientConfig cc){
+    private ConnectionProviderPort createProviderClient(URL url, ClientConfig cc){
 
-        Bus bus = prepareBus(url, cc);
+        prepareBus(url, cc);
 
         // set logging
         LoggingInInterceptor in = new LoggingInInterceptor();
@@ -73,7 +82,6 @@ public class ClientUtil {
         fb.getOutInterceptors().add(out);
 
         fb.setAddress(url.toString());
-        fb.setBus(bus);
 
         Map props = fb.getProperties();
         if (props == null) {
@@ -99,9 +107,9 @@ public class ClientUtil {
      * @param cc the client configuration
      * @return the ConnectionRequesterPort that you can use at the client
      */
-    public static ConnectionRequesterPort createRequesterClient(URL url, ClientConfig cc){
+    private ConnectionRequesterPort createRequesterClient(URL url, ClientConfig cc){
 
-        Bus bus = prepareBus(url, cc);
+        prepareBus(url, cc);
 
 
         // set logging
@@ -117,7 +125,6 @@ public class ClientUtil {
         fb.getOutInterceptors().add(out);
 
         fb.setAddress(url.toString());
-        fb.setBus(bus);
 
         Map props = fb.getProperties();
         if (props == null) {
@@ -142,7 +149,7 @@ public class ClientUtil {
      * Configures SSL and other basic client settings
      * @param url the URL of the server to contact
      */
-    public static Bus prepareBus(URL url, ClientConfig cc) {
+    private void prepareBus(URL url, ClientConfig cc) {
 
         String busFile = cc.getBusConfigPath();
 
@@ -153,7 +160,6 @@ public class ClientUtil {
         SpringBusFactory bf = new SpringBusFactory();
         Bus bus = bf.createBus(busFile);
         bf.setDefaultBus(bus);
-        return bus;
     }
 
     
