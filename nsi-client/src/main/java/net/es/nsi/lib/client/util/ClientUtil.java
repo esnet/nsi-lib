@@ -73,6 +73,7 @@ public class ClientUtil {
         fb.getOutInterceptors().add(out);
 
         fb.setAddress(url.toString());
+        fb.setBus(bus);
 
         Map props = fb.getProperties();
         if (props == null) {
