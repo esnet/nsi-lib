@@ -152,6 +152,7 @@ public class ClientUtil {
 
         SpringBusFactory bf = new SpringBusFactory();
         Bus bus = bf.createBus(busFile);
+        bf.setDefaultBus(bus);
         return bus;
     }
 
