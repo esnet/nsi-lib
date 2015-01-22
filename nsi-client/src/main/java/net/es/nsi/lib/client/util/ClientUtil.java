@@ -1,6 +1,5 @@
 package net.es.nsi.lib.client.util;
 
-import net.es.nsi.lib.client.types.SpringContext;
 import net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.provider.ConnectionProviderPort;
 import net.es.nsi.lib.soap.gen.nsi_2_0_r117.connection.requester.ConnectionRequesterPort;
 import net.es.nsi.lib.soap.gen.nsi_2_0_r117.framework.headers.CommonHeaderType;
@@ -15,6 +14,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.ws.Holder;
+import java.net.URL;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,17 +29,37 @@ public class ClientUtil {
     final public static String DEFAULT_REQUESTER = "urn:oscars:nsa:client";
     final public static String DEFAULT_PROVIDER = DEFAULT_REQUESTER;
     final public static String DEFAULT_PROTOCOL_VERSION = "application/vdn.ogf.nsi.cs.v2.provider+soap";
-    
+
+
+    HashMap<URL, ConnectionRequesterPort> requesterPorts = new HashMap<URL, ConnectionRequesterPort>();
+    HashMap<URL, ConnectionProviderPort> providerPorts = new HashMap<URL, ConnectionProviderPort>();
+
+    public synchronized ConnectionRequesterPort getRequesterPort(URL url, ClientConfig cc) {
+        if (requesterPorts.get(url) == null) {
+            requesterPorts.put(url, createRequesterClient(url, cc));
+        }
+        return requesterPorts.get(url);
+    }
+
+    public synchronized ConnectionProviderPort getProviderPort(URL url, ClientConfig cc) {
+        if (providerPorts.get(url) == null) {
+            providerPorts.put(url, createProviderClient(url, cc));
+        }
+        return providerPorts.get(url);
+    }
+
+
+
     /**
      * Creates a client class can be used to call provider at given URL
      * 
      * @param url the URL of the provider to contact
-     * @param clientBusFile the bus file that defines characteristics of HTTP connections
+     * @param cc the client configuration
      * @return the ConnectionProviderPort that you can use as the client
      */
-    public static ConnectionProviderPort createProviderClient(SpringContext context, String url, String clientBusFile){
+    public static ConnectionProviderPort createProviderClient(URL url, ClientConfig cc){
 
-        prepareBus(context, url, clientBusFile);
+        Bus bus = prepareBus(url, cc);
 
         // set logging
         LoggingInInterceptor in = new LoggingInInterceptor();
@@ -52,7 +72,7 @@ public class ClientUtil {
         fb.getInInterceptors().add(in);
         fb.getOutInterceptors().add(out);
 
-        fb.setAddress(url);
+        fb.setAddress(url.toString());
 
         Map props = fb.getProperties();
         if (props == null) {
@@ -70,25 +90,17 @@ public class ClientUtil {
         return client;
     }
     
-    /**
-     * Creates client using bus file defined in beans definition
-     * @param url URL of the provider to contact
-     * @return the ConnectionProviderPort that you can use as the client
-     */
-    public static ConnectionProviderPort createProviderClient(SpringContext context, String url){
-        return createProviderClient(context, url, null);
-    }
-    
+
     /**
      * Creates a client for interacting with an NSA requester
      * 
      * @param url the URL of the requester to contact
-     * @param clientBusFile the bus file that defines characteristics of HTTP connections
+     * @param cc the client configuration
      * @return the ConnectionRequesterPort that you can use at the client
      */
-    public static ConnectionRequesterPort createRequesterClient(SpringContext context, String url, String clientBusFile){
+    public static ConnectionRequesterPort createRequesterClient(URL url, ClientConfig cc){
 
-        prepareBus(context, url, clientBusFile);
+        Bus bus = prepareBus(url, cc);
 
 
         // set logging
@@ -99,10 +111,12 @@ public class ClientUtil {
         out.setPrettyLogging(true);
 
         JaxWsProxyFactoryBean fb = new JaxWsProxyFactoryBean();
+
         fb.getInInterceptors().add(in);
         fb.getOutInterceptors().add(out);
 
-        fb.setAddress(url);
+        fb.setAddress(url.toString());
+        fb.setBus(bus);
 
         Map props = fb.getProperties();
         if (props == null) {
@@ -120,46 +134,24 @@ public class ClientUtil {
         return client;
     }
 
-    /**
-     * Creates a client for interacting with an NSA requester
-     * 
-     * @param url the URL of the requester to contact
-     * @return the ConnectionRequesterPort that you can use at the client
-     */
-    public static ConnectionRequesterPort createRequesterClient(SpringContext context, String url){
-        return createRequesterClient(context, url, null);
-    }
+
+
 
     /**
      * Configures SSL and other basic client settings
      * @param url the URL of the server to contact
      */
-    public static void prepareBus(SpringContext context, String url, String clientBusFile) {
-        String busFile = null;
-        String sslBusFile = null;
-        if(clientBusFile == null){
-            String beansFile = System.getProperty("nsibridge.beans");
-            if(beansFile == null || "".equals(beansFile)){
-                beansFile = "config/beans.xml";
-            }
-            context.initContext(beansFile);
-            ClientConfig cc = context.getContext().getBean("clientConfig", ClientConfig.class);
-            sslBusFile = cc.getSslBus();
-            busFile = cc.getBus();
-        }else{
-            busFile =clientBusFile;
-            sslBusFile = clientBusFile;
-        }
-        
-        SpringBusFactory bf = new SpringBusFactory();
-        Bus bus;
-        if (url.toLowerCase().startsWith("https")) {
+    public static Bus prepareBus(URL url, ClientConfig cc) {
+
+        String busFile = cc.getBusConfigPath();
+
+        if (url.getProtocol().equals("https")) {
             System.setProperty("javax.net.ssl.trustStore","DoNotUsecacerts");
-            bus = bf.createBus(sslBusFile);
-        } else {
-            bus = bf.createBus(busFile);
         }
-        SpringBusFactory.setDefaultBus(bus);
+
+        SpringBusFactory bf = new SpringBusFactory();
+        Bus bus = bf.createBus(busFile);
+        return bus;
     }
 
     

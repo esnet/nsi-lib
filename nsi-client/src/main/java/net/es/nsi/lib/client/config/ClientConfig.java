@@ -1,23 +1,9 @@
 package net.es.nsi.lib.client.config;
 
 
-public class ClientConfig {
-    protected String bus;
-    protected String sslBus;
+public interface ClientConfig {
 
-    public String getBus() {
-        return bus;
-    }
+    public String getBusConfigPath();
 
-    public void setBus(String bus) {
-        this.bus = bus;
-    }
 
-    public String getSslBus() {
-        return sslBus;
-    }
-
-    public void setSslBus(String sslBus) {
-        this.sslBus = sslBus;
-    }
 }
