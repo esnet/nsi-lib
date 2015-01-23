@@ -9,12 +9,12 @@ import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+import org.apache.log4j.Logger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.ws.Holder;
-import java.net.URL;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +25,7 @@ import java.util.UUID;
  *
  */
 public class ClientUtil {
+    private static final Logger log = Logger.getLogger(ClientUtil.class);
     private static ClientUtil instance;
     private ClientUtil() {}
     final public static String DEFAULT_URL = "https://localhost:8500/nsi-v2/ConnectionServiceProvider";
@@ -33,8 +34,8 @@ public class ClientUtil {
     final public static String DEFAULT_PROTOCOL_VERSION = "application/vdn.ogf.nsi.cs.v2.provider+soap";
 
 
-    HashMap<URL, ConnectionRequesterPort> requesterPorts = new HashMap<URL, ConnectionRequesterPort>();
-    HashMap<URL, ConnectionProviderPort> providerPorts = new HashMap<URL, ConnectionProviderPort>();
+    HashMap<String, ConnectionRequesterPort> requesterPorts = new HashMap<String, ConnectionRequesterPort>();
+    HashMap<String, ConnectionProviderPort> providerPorts = new HashMap<String, ConnectionProviderPort>();
 
     public static ClientUtil getInstance() {
         if (instance == null) {
@@ -43,14 +44,14 @@ public class ClientUtil {
         return instance;
     }
 
-    public synchronized ConnectionRequesterPort getRequesterPort(URL url, ClientConfig cc) {
+    public synchronized ConnectionRequesterPort getRequesterPort(String url, ClientConfig cc) {
         if (requesterPorts.get(url) == null) {
             requesterPorts.put(url, createRequesterClient(url, cc));
         }
         return requesterPorts.get(url);
     }
 
-    public synchronized ConnectionProviderPort getProviderPort(URL url, ClientConfig cc) {
+    public synchronized ConnectionProviderPort getProviderPort(String url, ClientConfig cc) {
         if (providerPorts.get(url) == null) {
             providerPorts.put(url, createProviderClient(url, cc));
         }
@@ -66,7 +67,7 @@ public class ClientUtil {
      * @param cc the client configuration
      * @return the ConnectionProviderPort that you can use as the client
      */
-    private ConnectionProviderPort createProviderClient(URL url, ClientConfig cc){
+    private ConnectionProviderPort createProviderClient(String url, ClientConfig cc) {
 
         prepareBus(url, cc);
 
@@ -81,7 +82,7 @@ public class ClientUtil {
         fb.getInInterceptors().add(in);
         fb.getOutInterceptors().add(out);
 
-        fb.setAddress(url.toString());
+        fb.setAddress(url);
 
         Map props = fb.getProperties();
         if (props == null) {
@@ -107,7 +108,7 @@ public class ClientUtil {
      * @param cc the client configuration
      * @return the ConnectionRequesterPort that you can use at the client
      */
-    private ConnectionRequesterPort createRequesterClient(URL url, ClientConfig cc){
+    private ConnectionRequesterPort createRequesterClient(String url, ClientConfig cc) {
 
         prepareBus(url, cc);
 
@@ -124,7 +125,7 @@ public class ClientUtil {
         fb.getInInterceptors().add(in);
         fb.getOutInterceptors().add(out);
 
-        fb.setAddress(url.toString());
+        fb.setAddress(url);
 
         Map props = fb.getProperties();
         if (props == null) {
@@ -147,19 +148,22 @@ public class ClientUtil {
 
     /**
      * Configures SSL and other basic client settings
-     * @param url the URL of the server to contact
+     * @param urlString the URL of the server to contact
      */
-    private void prepareBus(URL url, ClientConfig cc) {
+    private void prepareBus(String urlString, ClientConfig cc) {
+
 
         String busFile = cc.getBusConfigPath();
+        log.debug("preparing bus for "+urlString+" path: "+busFile);
 
-        if (url.getProtocol().equals("https")) {
-            System.setProperty("javax.net.ssl.trustStore","DoNotUsecacerts");
-        }
+
+        System.setProperty("javax.net.ssl.trustStore","DoNotUsecacerts");
+
 
         SpringBusFactory bf = new SpringBusFactory();
         Bus bus = bf.createBus(busFile);
         bf.setDefaultBus(bus);
+
     }
 
     
