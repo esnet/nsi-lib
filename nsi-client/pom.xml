@@ -188,7 +188,7 @@
     <!-- allow publishing to ESnet repository -->
     <distributionManagement>
         <repository>
-            <id>nsi-lib-release</id>
+            <id>esnet-lib-release</id>
             <name>Internal Release Repository</name>
             <url>dav:http://oscars.es.net/maven/nsi-lib/release</url>
             <uniqueVersion>false</uniqueVersion>
