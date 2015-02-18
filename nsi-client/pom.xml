@@ -6,7 +6,7 @@
 
     <groupId>net.es.nsi-lib</groupId>
     <artifactId>nsi-client</artifactId>
-    <version>1.0.10</version>
+    <version>1.0.11</version>
     <properties>
         <cucumber.options>--strict</cucumber.options>
         <java.version>1.6</java.version>
@@ -15,7 +15,7 @@
         <spring.version>4.0.6.RELEASE</spring.version>
         <nsi-soap.version>2.0.1</nsi-soap.version>
         <slf4j.version>1.7.5</slf4j.version>
-        <cxf.version>3.0.3</cxf.version>
+        <cxf.version>3.0.4</cxf.version>
         <log4j.version>1.2.17</log4j.version>
     </properties>
 
@@ -92,7 +92,7 @@
             <url>http://repo.springsource.org/libs-release/</url>
         </repository>
         <repository>
-            <id>esnet.nsi</id>
+            <id>esnet-lib-release</id>
             <url>http://oscars.es.net/maven/nsi-lib/release</url>
         </repository>
 
